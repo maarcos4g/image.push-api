@@ -5,11 +5,13 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod'
 
-import { createDownloadUrl } from "./routes/create-upload-url";
+import { createUploadUrl } from "./routes/create-upload-url";
+import { createDownloadUrl } from "./routes/create-download-url";
 
 const app = fastify()
 
 //routes
+app.register(createUploadUrl)
 app.register(createDownloadUrl)
 
 app.setValidatorCompiler(validatorCompiler)

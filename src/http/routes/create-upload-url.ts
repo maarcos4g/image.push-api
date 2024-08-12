@@ -8,7 +8,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/env";
 import { db } from "@/db/connection";
 
-export async function createDownloadUrl(app: FastifyInstance) {
+export async function createUploadUrl(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()
     .post('/upload',
@@ -35,7 +35,7 @@ export async function createDownloadUrl(app: FastifyInstance) {
           Key: fileKey,
           ContentType: contentType,
         }), {
-          expiresIn: 600, //60 seconds
+          expiresIn: 600,
         })
 
         const file = await db.file.create({
