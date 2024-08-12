@@ -6,6 +6,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2 } from "@/lib/cloudflare";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/env";
+import { db } from "@/db/connection";
 
 export async function createDownloadUrl(app: FastifyInstance) {
   app
@@ -16,7 +17,12 @@ export async function createDownloadUrl(app: FastifyInstance) {
           body: z.object({
             name: z.string().min(1),
             contentType: z.string().regex(/\w+\/[-+.\w]+/),
-          })
+          }),
+          response: {
+            201: z.object({
+              signedUrl: z.string().url()
+            })
+          }
         }
       },
       async (request, reply) => {
@@ -31,6 +37,15 @@ export async function createDownloadUrl(app: FastifyInstance) {
         }), {
           expiresIn: 600, //60 seconds
         })
-        return reply.status(201).send(signedUrl)
+
+        const file = await db.file.create({
+          data: {
+            name,
+            contentType,
+            key: fileKey,
+          }
+        })
+
+        return reply.status(201).send({ signedUrl })
       })
 }
