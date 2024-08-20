@@ -7,6 +7,7 @@ import { r2 } from "@/lib/cloudflare";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/env";
 import { db } from "@/db/connection";
+import { BadRequest } from "./errors/bad-request";
 
 export async function createDownloadUrl(app: FastifyInstance) {
   app
@@ -26,10 +27,14 @@ export async function createDownloadUrl(app: FastifyInstance) {
           where: { id }
         })
 
+        if (!file) {
+          throw new BadRequest('File not found.')
+        }
+
         const downloadUrl = await getSignedUrl(r2, new GetObjectCommand({
           Bucket: env.CLOUDFLARE_BUCKET_NAME,
           Key: file.key,
-        }), { expiresIn: 60 * 60 * 24 * 7 })
+        }), { expiresIn: 60 * 60 * 24 * 30 * 12 }) // 1 year
 
         return reply.redirect(301, downloadUrl)
 

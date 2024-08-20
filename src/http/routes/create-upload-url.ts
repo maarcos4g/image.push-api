@@ -7,6 +7,7 @@ import { r2 } from "@/lib/cloudflare";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/env";
 import { db } from "@/db/connection";
+import { BadRequest } from "./errors/bad-request";
 
 export async function createUploadUrl(app: FastifyInstance) {
   app
@@ -26,26 +27,30 @@ export async function createUploadUrl(app: FastifyInstance) {
         }
       },
       async (request, reply) => {
-        const { contentType, name } = request.body
+        try {
+          const { contentType, name } = request.body
 
-        const fileKey = randomUUID().concat('-').concat(name)
+          const fileKey = randomUUID().concat('-').concat(name)
 
-        const signedUrl = await getSignedUrl(r2, new PutObjectCommand({
-          Bucket: env.CLOUDFLARE_BUCKET_NAME,
-          Key: fileKey,
-          ContentType: contentType,
-        }), {
-          expiresIn: 600,
-        })
+          const signedUrl = await getSignedUrl(r2, new PutObjectCommand({
+            Bucket: env.CLOUDFLARE_BUCKET_NAME,
+            Key: fileKey,
+            ContentType: contentType,
+          }), {
+            expiresIn: 600,
+          })
 
-        const file = await db.file.create({
-          data: {
-            name,
-            contentType,
-            key: fileKey,
-          }
-        })
+          await db.file.create({
+            data: {
+              name,
+              contentType,
+              key: fileKey,
+            }
+          })
 
-        return reply.status(201).send({ signedUrl })
+          return reply.status(201).send({ signedUrl })
+        } catch (error) {
+          throw new BadRequest('Error to create upload url')
+        }
       })
 }

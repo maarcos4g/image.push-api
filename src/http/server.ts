@@ -1,4 +1,5 @@
 import fastify from "fastify";
+import cors from '@fastify/cors'
 
 import {
   serializerCompiler,
@@ -9,6 +10,10 @@ import { createUploadUrl } from "./routes/create-upload-url";
 import { createDownloadUrl } from "./routes/create-download-url";
 
 const app = fastify()
+
+app.register(cors, {
+  origin: true, //url da aplicação front
+})
 
 //routes
 app.register(createUploadUrl)
