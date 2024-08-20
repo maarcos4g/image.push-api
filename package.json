@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --env-file .env src/http/server.ts"
+    "dev": "tsx watch --env-file .env src/http/server.ts",
+    "build": "tsup src --format esm",
+    "vercel-build": "pnpm prisma migrate deploy && prisma generate && tsup src --form esm",
+    "start": "node dist/http/server.mjs"
   },
   "keywords": [],
   "author": "",
